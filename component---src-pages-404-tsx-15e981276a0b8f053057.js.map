@@ -1,0 +1,1 @@
+{"version":3,"file":"component---src-pages-404-tsx-15e981276a0b8f053057.js","mappings":"+HAIA,UAF+B,kBAAM","sources":["webpack://timetable/./src/pages/404.tsx"],"sourcesContent":["import * as React from \"react\";\n\nconst NotFoundPage: React.FC = () => <h1>404: Not Found</h1>;\n\nexport default NotFoundPage;\n"],"names":[],"sourceRoot":""}
