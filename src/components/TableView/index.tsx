@@ -33,6 +33,7 @@ export function TableView(props: { timetable: WeeklySchedule }): JSX.Element {
 
   return (
     <Table
+      key={Math.random() * 1000}
       bordered={true}
       pagination={false}
       size="middle"
