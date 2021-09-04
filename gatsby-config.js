@@ -5,6 +5,7 @@ module.exports = {
     author: `Hunzlah Malik`,
     siteUrl: `https://ghostdart.github.io/ftimetable`,
   },
+  pathPrefix: `/ftimetable`,
   plugins: [
     `gatsby-plugin-react-helmet`,
     `gatsby-plugin-offline`,

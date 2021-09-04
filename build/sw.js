@@ -27,20 +27,28 @@ workbox.core.clientsClaim();
  */
 self.__precacheManifest = [
   {
-    "url": "webpack-runtime-8f000ff0994bbc8cee30.js"
+    "url": "webpack-runtime-462ea0a40f274672cd0a.js"
   },
   {
     "url": "framework-81cec762e4cbb99a3e9f.js"
   },
   {
-    "url": "app-83f27ae3687588ce3ea4.js"
+    "url": "app-d9838aefc89ed04fc858.js"
   },
   {
     "url": "offline-plugin-app-shell-fallback/index.html",
-    "revision": "1569a2b758957931d62dbd7e70424324"
+    "revision": "a9b5e974e6d3e411d6ba477933fbb244"
   },
   {
     "url": "component---cache-caches-gatsby-plugin-offline-app-shell-js-395c5fd30c7007606350.js"
+  },
+  {
+    "url": "page-data/offline-plugin-app-shell-fallback/page-data.json",
+    "revision": "f2c002077289a7e1ac538802bc7f5314"
+  },
+  {
+    "url": "page-data/app-data.json",
+    "revision": "827c6a5e5aa740fbb6c66c1a5a020e5b"
   },
   {
     "url": "polyfill-359bfc383550b683c623.js"
@@ -130,12 +138,12 @@ const navigationRoute = new NavigationRoute(async ({ event }) => {
   lastNavigationRequest = event.request.url
 
   let { pathname } = new URL(event.request.url)
-  pathname = pathname.replace(new RegExp(`^`), ``)
+  pathname = pathname.replace(new RegExp(`^/ftimetable`), ``)
 
   // Check for resources + the app bundle
   // The latter may not exist if the SW is updating to a new version
   const resources = await idbKeyval.get(`resources:${pathname}`)
-  if (!resources || !(await caches.match(`/app-83f27ae3687588ce3ea4.js`))) {
+  if (!resources || !(await caches.match(`/ftimetable/app-d9838aefc89ed04fc858.js`))) {
     return await fetch(event.request)
   }
 
@@ -148,7 +156,7 @@ const navigationRoute = new NavigationRoute(async ({ event }) => {
     }
   }
 
-  const offlineShell = `/offline-plugin-app-shell-fallback/index.html`
+  const offlineShell = `/ftimetable/offline-plugin-app-shell-fallback/index.html`
   const offlineShellWithKey = workbox.precaching.getCacheKeyForURL(offlineShell)
   return await caches.match(offlineShellWithKey)
 })
