@@ -11,7 +11,7 @@
     "esModuleInterop": true,
     "noUnusedLocals": false
   },
-  "exclude": ["node_modules", "public", ".cache"]
+  "exclude": ["node_modules", "build", "public", ".cache"]
 }
 
 // {

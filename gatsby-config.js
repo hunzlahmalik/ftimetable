@@ -3,7 +3,7 @@ module.exports = {
     title: `FAST Timetable`,
     description: `Timetable parser and generator`,
     author: `Hunzlah Malik`,
-    siteUrl: `https://ghostdart.github.io/`,
+    siteUrl: `https://ghostdart.github.io/ftimetable`,
   },
   plugins: [
     `gatsby-plugin-react-helmet`,
