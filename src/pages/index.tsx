@@ -6,13 +6,16 @@ import { XLSXInput } from "../components/XLSXInput";
 import { CourseInput } from "../components/CourseInput";
 import { SectionInput } from "../components/SectionInput";
 import { Timetable } from "../modules/timetable/Timetable";
-import { IJSON } from "../modules/xlsx/interfaces";
+import { Courses } from "../modules/xlsx/interfaces";
 import { WeeklySchedule } from "../modules/timetable/interfaces";
 import { TableView } from "../components/TableView";
 import { Header } from "antd/lib/layout/layout";
+import { hourToMint } from "../modules/xlsx/utils";
+import { WorkBook } from "xlsx/types";
 
 export default function Home(): JSX.Element {
   const [file, setFile] = React.useState<Blob>();
+  const [wb, setwb] = React.useState<WorkBook>();
   const [sheet, setSheet] = React.useState(0);
   const [sheets, setSheets] = React.useState(0);
   const [xlsxParser, setParser] = React.useState<XLSXParser>();
@@ -32,30 +35,17 @@ export default function Home(): JSX.Element {
   }, [xlsxParser]);
 
   React.useEffect(() => {
-    if (file) handleFile(file);
-  }, [sheet]);
-  const handleFile = (inputfile: Blob) => {
-    setFile(inputfile);
-    const reader = new FileReader();
-    const rABS = !!reader.readAsBinaryString;
-    reader.onload = async (e) => {
-      if (!(e && e.target)) throw new Error("e.target is null!");
-
-      /* Parse data */
-      const bstr = e.target.result;
-      const wb = XLSXUtils.read(bstr, { type: rABS ? "binary" : "array" });
-      /* Get first worksheet */
+    if (wb) {
       setSheets(wb.SheetNames.length);
-      const ws = wb.Sheets[wb.SheetNames[sheet]];
-      // Merging the cells
+      const ws = XLSXUtils.loadSheet({ wb: wb, sheet: sheet });
       XLSXUtils.fillMerges(ws);
       setParser(new XLSXParser(ws));
+    }
+  }, [sheet, wb]);
 
-      // setCoursesData(xlsxParser.getCoursesTitle());
-      // console.log(xlsxParser.getCoursesTitle().length);
-    };
-    if (rABS) reader.readAsBinaryString(inputfile);
-    else reader.readAsArrayBuffer(inputfile);
+  const handleFile = (inputfile: Blob) => {
+    setFile(inputfile);
+    XLSXUtils.loadFile({ file: inputfile, wbHandler: setwb });
   };
 
   const handleCourses = (courses: string[]) => {
@@ -75,9 +65,9 @@ export default function Home(): JSX.Element {
   };
 
   const timetableGenerate = () => {
-    const allcourses = xlsxParser?.courses;
+    const allcourses = xlsxParser?.data.courses;
     if (allcourses) {
-      const selected: IJSON = {};
+      const selected: Courses = {};
       for (const [ctitle, sections] of Object.entries(selectedCourseSection)) {
         for (const section of sections) {
           if (!(ctitle in selected)) selected[ctitle] = {};
@@ -85,7 +75,14 @@ export default function Home(): JSX.Element {
         }
       }
       console.log(selected);
-      const tables = Timetable.generate(selected);
+      const tables = Timetable.generate({
+        wsJSON: [],
+        courses: selected,
+        tperiod: xlsxParser.data.tperiod,
+        timings: xlsxParser.data.timings,
+        days: xlsxParser.data.days,
+        startEndTime: xlsxParser.data.startEndTime,
+      });
       console.log(tables);
       setFinalTables(tables);
     }
@@ -121,10 +118,7 @@ export default function Home(): JSX.Element {
           return (
             <>
               <Divider />
-              <TableView
-                key={index + Math.random() * 100}
-                timetable={finalTable}
-              />
+              <TableView timetable={finalTable} data={xlsxParser?.data} />
             </>
           );
         })}

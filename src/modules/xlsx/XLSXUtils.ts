@@ -10,6 +10,7 @@ import {
   WorkSheet,
   utils,
   CellObject,
+  WorkBook,
 } from "xlsx";
 
 /**
@@ -38,6 +39,10 @@ export class XLSXUtils {
     };
     if (rABS) reader.readAsBinaryString(file);
     else reader.readAsArrayBuffer(file);
+  };
+
+  static loadSheet = (params: { wb: WorkBook; sheet: number }): WorkSheet => {
+    return params.wb.Sheets[params.wb.SheetNames[params.sheet]];
   };
 
   /**

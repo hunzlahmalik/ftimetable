@@ -1,45 +1,38 @@
-import { ITime, WeekdaysEnum, IRange, ITIME24_REGEX } from "./interfaces";
+import { Time24, WeekdaysEnum, Range, TIME24_R } from "./interfaces";
 import { TIME24_REGEX } from "./regex";
 
-export function mintToHour(
-  tminutes: number,
-  format: "12" | "24" = "24"
-): ITime {
+export function mintToHour(tminutes: number): Time24 {
   const hours = Math.floor(tminutes / 60);
   const minutes = tminutes % 60;
   return {
-    hour: format === "24" ? hours : hours > 12 ? hours - 12 : hours,
+    hour: hours,
     minutes: minutes,
-    is24: format === "24",
-    period: format === "12" ? (hours >= 12 ? "pm" : "am") : undefined,
   };
 }
 
-export function hourToMint(time: ITime): number {
-  return (
-    time.hour * 60 +
-    time.minutes +
-    (time.is24 && time.period == "pm" ? 12 * 60 : 0)
-  );
+export function hourToMint(time: Time24): number {
+  return time.hour * 60 + time.minutes;
 }
 
-export function timeToStr(time: ITime): string {
+export function timeToStr(time: Time24): string {
   return `${time.hour < 10 ? 0 : ""}${time.hour}:${time.minutes < 10 ? 0 : ""}${
     time.minutes
-  }${time.is24 ? "" : " "}${
-    time.is24 ? "" : time.period !== undefined ? time.period : ""
   }`;
 }
 
-export function strToMints(time: string): number {
+export function strToMint(time: string): number {
   if (TIME24_REGEX.test(time)) {
     const matches = time.match(TIME24_REGEX);
     if (matches && matches.groups) {
-      const tdata = matches.groups as unknown as ITIME24_REGEX;
+      const tdata = matches.groups as unknown as TIME24_R;
       return Number(tdata.hour) * 60 + Number(tdata.minute);
     }
   }
   return -1;
+}
+
+export function mintToStr(time: number): string {
+  return timeToStr(mintToHour(time));
 }
 
 /**
@@ -81,10 +74,7 @@ export function weekdaysToStr(e: WeekdaysEnum): string {
     : WeekdaysEnum[WeekdaysEnum.Unknown];
 }
 
-export function isOverlap(
-  timeA: IRange<number>,
-  timeB: IRange<number>
-): boolean {
+export function isOverlap(timeA: Range<number>, timeB: Range<number>): boolean {
   return (
     timeB.s <= timeA.s &&
     timeB.s >= timeA.e &&

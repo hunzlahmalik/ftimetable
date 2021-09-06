@@ -1,10 +1,11 @@
 import {
-  IJSON,
-  IRange,
-  ISection,
+  Courses,
+  Section,
+  TimeRange,
   WeekdaysEnum,
   WeekdaysEnumEN,
-  XLSXCourseHoursEnum,
+  DayCoursesEnum,
+  XData,
 } from "../xlsx/interfaces";
 import { isOverlap } from "../xlsx/utils";
 import { XLSXParser } from "../xlsx/XLSXParser";
@@ -12,23 +13,30 @@ import { TimetableOpts, WeeklySchedule } from "./interfaces";
 import { newSchedule } from "./utils";
 
 export class Timetable {
-  static generate(selected: IJSON, opts?: TimetableOpts): WeeklySchedule[] {
-    let filtered = selected;
+  static generate(selected: XData, opts?: TimetableOpts): WeeklySchedule[] {
+    let filtered = selected.courses;
 
     if (opts) {
       const { avoidTime } = opts;
       if (avoidTime) {
-        filtered = Timetable.filter(selected, avoidTime);
+        filtered = Timetable.filter(selected.courses, avoidTime);
       }
     }
 
-    return Timetable.clashFree(filtered);
+    return Timetable.clashFree({
+      wsJSON: [],
+      courses: filtered,
+      tperiod: selected.tperiod,
+      timings: selected.timings,
+      days: selected.days,
+      startEndTime: selected.startEndTime,
+    });
   }
 
-  static filter(selected: IJSON, avoidTime: IRange<number>[]): IJSON {
-    const filtered: IJSON = {};
+  static filter(selected: Courses, avoidTime: TimeRange[]): Courses {
+    const filtered: Courses = {};
 
-    const sectionOverlap = (section: ISection): boolean => {
+    const sectionOverlap = (section: Section): boolean => {
       for (const slot of section.timeslots) {
         for (const blockedTime of avoidTime) {
           if (isOverlap(slot.time, blockedTime)) {
@@ -52,39 +60,38 @@ export class Timetable {
   }
 
   //idea taken from @Hamza Zaheer
-  static clashFree(filtered: IJSON, periodDuration = 90): WeeklySchedule[] {
+  static clashFree(filtered: XData): WeeklySchedule[] {
     const tables: WeeklySchedule[] = [];
-    const courses = Object.keys(filtered);
-    const maxdepth = courses.length; //XLSXParser.toXLSXJSON({ courses: filtered }).length;
+    const filteredC: Courses = filtered.courses;
+    const periodDuration = filtered.tperiod;
+    const courses = Object.keys(filteredC);
+    const maxdepth = courses.length;
+    const startend = filtered.startEndTime;
+
     console.log(courses);
     console.log(maxdepth);
+
     const recursive = (table: WeeklySchedule, depth: number) => {
       if (depth === maxdepth) {
         tables.push(JSON.parse(JSON.stringify(table)));
         return;
       }
-      // console.log(
-      //   `filtered[courses[depth]]=${JSON.stringify(filtered[courses[depth]])}`
-      // );
-      for (const [, section] of Object.entries(filtered[courses[depth]])) {
+
+      for (const [, section] of Object.entries(filteredC[courses[depth]])) {
         let clash = false;
         const sections = XLSXParser.toXLSXJSON({ section: section });
         for (const section of sections) {
           for (
-            let i = Math.floor(section.time_start / periodDuration);
-            i < Math.ceil(section.time_end / periodDuration);
+            let i = Math.floor((section.time.s - startend.s) / periodDuration);
+            i < Math.ceil((section.time.e - startend.s) / periodDuration);
             ++i
           ) {
             const day =
               WeekdaysEnumEN[
                 WeekdaysEnum[section.day] as keyof typeof WeekdaysEnumEN
               ];
-            const hour =
-              XLSXCourseHoursEnum[
-                Object.keys(XLSXCourseHoursEnum)[
-                  i
-                ] as keyof typeof XLSXCourseHoursEnum
-              ];
+
+            const hour = i as DayCoursesEnum;
             if (table[day][hour]) {
               clash = true;
             } else {
@@ -97,20 +104,15 @@ export class Timetable {
 
         for (const section of sections) {
           for (
-            let i = Math.floor(section.time_start / periodDuration);
-            i < Math.ceil(section.time_end / periodDuration);
+            let i = Math.floor((section.time.s - startend.s) / periodDuration);
+            i < Math.ceil((section.time.e - startend.s) / periodDuration);
             ++i
           ) {
             const day =
               WeekdaysEnumEN[
                 WeekdaysEnum[section.day] as keyof typeof WeekdaysEnumEN
               ];
-            const hour =
-              XLSXCourseHoursEnum[
-                Object.keys(XLSXCourseHoursEnum)[
-                  i
-                ] as keyof typeof XLSXCourseHoursEnum
-              ];
+            const hour = i as DayCoursesEnum;
             if (JSON.stringify(table[day][hour]) === JSON.stringify(section)) {
               table[day][hour] = null;
             }

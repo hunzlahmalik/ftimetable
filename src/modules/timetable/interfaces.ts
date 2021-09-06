@@ -1,20 +1,16 @@
 import {
-  ICourseSection,
-  IRange,
+  DayCoursesEnum,
+  Period,
+  TimeRange,
   WeekdaysEnumEN,
-  XLSXCourseHoursEnum,
 } from "../xlsx/interfaces";
 
 export interface TimetableOpts {
-  avoidTime?: IRange<number>[];
+  avoidTime?: TimeRange[];
 }
-
-// type Partial<T> = {
-//   [P in keyof T]?: T[P];
-// };
 
 export type WeeklySchedule = {
   [key in WeekdaysEnumEN]: {
-    [key2 in XLSXCourseHoursEnum]: ICourseSection | null | undefined;
+    [key in DayCoursesEnum]: Period | null | undefined;
   };
 };
