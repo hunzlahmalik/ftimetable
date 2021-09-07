@@ -370,4 +370,59 @@ export class XLSXParser {
       }
     }
   }
+
+  // for converting
+  static to_csv(localCourses: Courses): string {
+    const data = [];
+    data.push([
+      "course_title",
+      "section",
+      "start_time",
+      "end_time",
+      "day",
+      "room",
+    ]);
+    for (const c of XLSXParser.toXLSXJSON({ courses: localCourses })) {
+      data.push([c.ctitle, c.stitle, c.time.s, c.time.e, c.day, c.room]);
+    }
+    return XLSXParser.makeCSV(data);
+  }
+
+  static to_lststr(localCourses: Courses): string {
+    let data = `["course_title", "section", "start_time", "end_time", "day", "room"]\n`;
+    for (const c of XLSXParser.toXLSXJSON({ courses: localCourses })) {
+      data += `["${c.ctitle}", "${c.stitle}", "${c.time.s}", "${c.time.e}", "${c.day}", "${c.room}"]\n`;
+    }
+    return data;
+  }
+
+  /**
+   * Function returns the content as a CSV string
+   * See https://stackoverflow.com/a/20623188/64904
+   * Parameter content:
+   *   [
+   *.     [header1, header2, ...],
+   *.     [data1, data2, ...]
+   *.     ...
+   *.  ]
+   * NB Does not support Date items
+   */
+  static makeCSV(content: (string | number)[][]): string {
+    let csv = "";
+    content.forEach((value) => {
+      value.forEach((item, i) => {
+        const innerValue = item === null ? "" : item.toString();
+        let result = innerValue.replace(/"/g, '""');
+        if (result.search(/("|,|\n)/g) >= 0) {
+          result = '"' + result + '"';
+        }
+        if (i > 0) {
+          csv += ",";
+        }
+        csv += result;
+      });
+      csv += "\n";
+    });
+    return csv;
+  }
 }

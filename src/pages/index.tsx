@@ -1,24 +1,26 @@
 import React from "react";
-import { Button, Divider, InputNumber, Layout } from "antd";
+import { PageHeader, Button, Divider, InputNumber, Layout, Row } from "antd";
 import { XLSXParser } from "../modules/xlsx/XLSXParser";
 import { XLSXUtils } from "../modules/xlsx/XLSXUtils";
 import { XLSXInput } from "../components/XLSXInput";
 import { CourseInput } from "../components/CourseInput";
 import { SectionInput } from "../components/SectionInput";
 import { Timetable } from "../modules/timetable/Timetable";
-import { Courses } from "../modules/xlsx/interfaces";
+import { Courses, XData } from "../modules/xlsx/interfaces";
 import { WeeklySchedule } from "../modules/timetable/interfaces";
 import { TableView } from "../components/TableView";
-import { Header } from "antd/lib/layout/layout";
-import { hourToMint } from "../modules/xlsx/utils";
 import { WorkBook } from "xlsx/types";
+import { Convert } from "../components/Convert";
+import ReactDOM from "react-dom";
 
 export default function Home(): JSX.Element {
+  const [showConverter, setShowConverter] = React.useState(false);
   const [file, setFile] = React.useState<Blob>();
   const [wb, setwb] = React.useState<WorkBook>();
   const [sheet, setSheet] = React.useState(0);
   const [sheets, setSheets] = React.useState(0);
   const [xlsxParser, setParser] = React.useState<XLSXParser>();
+  const [xdata, setxData] = React.useState<XData>();
   const [coursesData, setCoursesData] = React.useState<string[]>([]);
   const [selectedCourses, setSelectedCourses] = React.useState<string[]>([]);
   const [finalTables, setFinalTables] = React.useState<WeeklySchedule[]>([]);
@@ -31,6 +33,7 @@ export default function Home(): JSX.Element {
     if (xlsxParser) {
       setCoursesData(xlsxParser.getCoursesTitle());
       console.log(xlsxParser.getCoursesTitle().length);
+      setxData(xlsxParser.data);
     }
   }, [xlsxParser]);
 
@@ -40,8 +43,13 @@ export default function Home(): JSX.Element {
       const ws = XLSXUtils.loadSheet({ wb: wb, sheet: sheet });
       XLSXUtils.fillMerges(ws);
       setParser(new XLSXParser(ws));
+      if (xlsxParser) setxData(xlsxParser.data);
     }
   }, [sheet, wb]);
+
+  React.useEffect(() => {
+    if (xlsxParser) setxData(xlsxParser.data);
+  }, [xlsxParser, xlsxParser?.data]);
 
   const handleFile = (inputfile: Blob) => {
     setFile(inputfile);
@@ -85,12 +93,23 @@ export default function Home(): JSX.Element {
       });
       console.log(tables);
       setFinalTables(tables);
+      setxData(xlsxParser.data);
     }
   };
 
   return (
     <Layout className="outerPadding">
-      <Header>FAST NUCE Timetable Generator</Header>
+      <br></br>
+      <h3 style={{ textAlign: "center" }}>
+        Help each other in righteousness and piety, and do not help each other
+        in sin and aggression.
+        <a href="https://quran.com/5/2">Surah Al-Ma&apos;idah Verse 2</a>
+      </h3>
+      <PageHeader
+        style={{ textAlign: "center" }}
+        className="site-page-header"
+        title="FAST NUCE Timetable Generator"
+      />
       <Layout className="container">
         <XLSXInput dataHandler={handleFile} />
         Sheet Number:
@@ -111,9 +130,22 @@ export default function Home(): JSX.Element {
             />
           );
         })}
-        <Button type="primary" size="middle" onClick={timetableGenerate}>
-          Generate
-        </Button>
+        <Row>
+          <Button type="primary" size="middle" onClick={timetableGenerate}>
+            Generate
+          </Button>
+          <Divider type="vertical" />
+          <Button
+            type="primary"
+            size="middle"
+            onClick={() => {
+              setShowConverter(true);
+            }}
+          >
+            Converter
+          </Button>
+          {showConverter ? <Convert courses={xdata} /> : ""}
+        </Row>
         {finalTables.map((finalTable, index) => {
           return (
             <>
