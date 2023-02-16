@@ -110,6 +110,16 @@ export default function Home(): JSX.Element {
         className="site-page-header"
         title="FAST NUCE Timetable Generator"
       />
+      {/* Github http://github.com/hunzlahmalik/ */}
+      <a href="https://github.com/hunzlahmalik/">
+        <img
+          src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
+          width="25"
+          height="25"
+        />
+        Github
+      </a>
+      <br />
       <Layout className="container">
         <XLSXInput dataHandler={handleFile} />
         Sheet Number:
